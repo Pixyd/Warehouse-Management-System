@@ -1,4 +1,4 @@
-# 📦 Warehouse Management System (Detailed README)
+# 📦 Warehouse Management System
 
 ## 📌 Project Description
 The Warehouse Management System is a Java desktop application designed to handle warehouse inventory using **Java Swing**, **SQLite**, and **JDBC**, following a clean **MVC architecture**.
