@@ -1,109 +1,171 @@
-# 📦 Warehouse Management System
+# 🏬 Warehouse Management System (WMS)
 
-## 📌 Project Description
-The Warehouse Management System is a Java desktop application designed to handle warehouse inventory using **Java Swing**, **SQLite**, and **JDBC**, following a clean **MVC architecture**.
+A **Java-based Warehouse Management System** built using **Swing GUI, JDBC, SQLite, and layered architecture**.  
+This application efficiently manages products, inventory movements, and low-stock alerts with **data consistency and transaction safety**.
 
-## 🎯 Objectives
-- Digitize warehouse activity  
-- Reduce human errors  
-- Enable faster stock updates  
-- Provide better UI for inventory management  
+---
 
-## 🏗 System Architecture
+## 📌 Project Overview
 
-### 🔹 UI Layer (Swing)
-Handles user interaction:
-- Product table  
-- Add/Edit dialog  
-- Stock receive/dispatch  
-- Search bar  
+The **Warehouse Management System** helps in managing warehouse inventory by allowing users to:
 
-### 🔹 Service Layer (`WarehouseService`)
-- Business logic  
-- Cache using ConcurrentHashMap  
-- Coordinates UI + DAO  
+- Add, edit, and delete products  
+- Receive and dispatch stock  
+- Automatically track inventory changes  
+- Trigger **low-stock alerts**  
+- Maintain **transaction consistency** between stock updates and logs  
 
-### 🔹 DAO Layer (`ProductDaoImpl`)
-- JDBC operations  
-- CRUD handling  
-- SQLite communication  
+The system follows a **clean architecture**:
 
-### 🔹 Database Schema
-```sql
-CREATE TABLE product (
-    product_id INTEGER PRIMARY KEY,
-    sku TEXT,
-    name TEXT,
-    description TEXT,
-    price REAL,
-    quantity INTEGER,
-    min_stock INTEGER
-);
+```
+UI (Swing) → Service Layer → DAO Layer → Database (SQLite)
 ```
 
 ---
 
-## ✨ Features
-### ✔ Product Management
-- Add / Edit / Delete products  
-- Auto-increment visible index  
-- Hidden DB ID for safe deletion  
+## 🛠️ Technologies Used
 
-### ✔ Inventory Ops
-- Receive stock  
-- Dispatch stock  
-- Quantity validation  
-- Low-stock detection  
-
-### ✔ Search System
-- Search by Name  
-- Search by SKU  
-- Case-insensitive  
-
-### ✔ UI Features
-- JTable for clean data display  
-- Background tasks via SwingWorker  
-- Tooltip showing DB ID  
+- **Java (JDK 8+)**
+- **Java Swing** – GUI
+- **JDBC** – Database connectivity
+- **SQLite** – Embedded database
+- **Gradle** – Build tool
+- **Git & GitHub** – Version control
+- **IntelliJ IDEA** – Development environment
 
 ---
 
 ## 📂 Project Structure
+
 ```
-src/
- ├── app/
- │     ├── Main.java
- │     └── UI/
- │           ├── MainFrame.java
- │           ├── ProductPanel.java
- │           └── ProductFormDialog.java
- ├── model/
- │     └── Product.java
- ├── service/
- │     └── WarehouseService.java
- ├── dao/
- │     ├── ProductDao.java
- │     └── ProductDaoImpl.java
- └── util/
-       └── SimpleLogger.java
+warehouse-management/
+│
+├── src/main/java/
+│   ├── app/
+│   │   ├── Main.java
+│   │   └── UI/
+│   │       ├── MainFrame.java
+│   │       ├── ProductPanel.java
+│   │       └── ProductFormDialog.java
+│   │
+│   ├── service/
+│   │   └── WarehouseService.java
+│   │
+│   ├── dao/
+│   │   ├── ProductDao.java
+│   │   ├── ProductDaoImpl.java
+│   │   └── DbManager.java
+│   │
+│   ├── model/
+│   │   └── Product.java
+│   │
+│   └── util/
+│       └── SimpleLogger.java
+│
+├── src/main/resources/
+│   └── sql/schema.sql
+│
+├── warehouse.db
+├── build.gradle
+└── README.md
 ```
+
+---
+
+## ⚙️ Core Features
+
+### ✅ Product Management
+- Add new products  
+- Edit existing products  
+- Delete products safely  
+
+### ✅ Inventory Control
+- Receive stock (Stock In)  
+- Dispatch stock (Stock Out)  
+- Prevents negative inventory  
+
+### ✅ Atomic Inventory Transactions
+Each inventory operation:
+- Updates **product quantity**
+- Inserts a corresponding **inventory transaction record**
+- Executes inside a **single database transaction**
+
+➡️ Ensures **data consistency** at all times.
+
+### ✅ Low Stock Alert System
+- Automatically detects when stock ≤ minimum stock  
+- Alerts **only once per low-stock event**  
+- Alert resets when stock is restored  
+- Prevents repeated popup spam  
+
+### ✅ Search & UI Features
+- Search by product name or SKU  
+- Clean tabular view with serial numbering  
+- Hidden database IDs (safe UI design)  
+
+---
+
+## 🚨 Low Stock Alert Logic (Improved)
+
+- Alert triggers **only when stock crosses the threshold**
+- Uses in-memory tracking to avoid duplicate alerts
+- Automatically re-enables alert if stock is refilled and drops again
 
 ---
 
 ## ▶️ How to Run the Project
-1. Install **Java 17+**  
-2. Open project in **IntelliJ IDEA**  
-3. Run `Main.java`  
-4. Database auto-creates  
+
+1. Open the project in **IntelliJ IDEA**
+2. Ensure **JDK 8+** is configured
+3. Let **Gradle sync** complete
+4. Run:
+   ```
+   src/main/java/app/Main.java
+   ```
+5. The application window will launch
 
 ---
 
-## 👥 Team Semicolon
-- **Dhruv Mittal (Leader)**  
-- **Kriti Biswas**  
-- **Ayush Kumar Rai**
+## 🧪 Sample Product Entries
 
-## 🔮 Future Enhancements
-- Login system  
-- Export to PDF/Excel  
-- Supplier module  
-- Cloud integration  
+| SKU | Name | Price | Quantity | Min Stock |
+|----|------|-------|----------|-----------|
+| 101 | USB Keyboard | 799 | 50 | 10 |
+| 102 | Wireless Mouse | 599 | 40 | 8 |
+| 107 | Wireless Headphones | 3499 | 3 | 5 |
+
+---
+
+## 👨‍💻 Team Details
+
+**Team Name:** Semicolon  
+
+**Team Leader:**  
+- Dhruv Mittal  
+
+**Team Members:**  
+- Kriti Biswas  
+- Ayush Kumar Rai  
+
+---
+
+## 📈 Academic Highlights
+
+- ✔ Layered architecture (UI–Service–DAO)
+- ✔ JDBC with transaction management
+- ✔ Atomic inventory updates
+- ✔ Exception handling & logging
+- ✔ Clean, user-friendly GUI
+- ✔ GitHub version control
+
+---
+
+## 📜 License
+
+This project is developed for **academic and learning purposes**.
+
+---
+
+### ✅ Status: Completed & Submitted
+
+This project is **fully functional, optimized, and presentation-ready**.
