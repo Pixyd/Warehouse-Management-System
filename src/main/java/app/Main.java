@@ -6,7 +6,7 @@ import util.SimpleLogger;
 
 import javax.swing.*;
 
-public class Main {
+public class    Main {
     public static void main(String[] args) {
         SimpleLogger.info("Starting Warehouse Management System");
         try {

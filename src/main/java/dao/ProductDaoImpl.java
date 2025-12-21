@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class ProductDaoImpl implements ProductDao {
+
     @Override
     public Product create(Product p) throws SQLException {
         String sql = "INSERT INTO product (sku,name,description,price,quantity,min_stock,supplier_id) VALUES (?,?,?,?,?,?,?)";
@@ -20,7 +21,7 @@ public class ProductDaoImpl implements ProductDao {
             ps.setDouble(4, p.getPrice());
             ps.setInt(5, p.getQuantity());
             ps.setInt(6, p.getMinStock());
-            if (p.getSupplierId()==null) ps.setNull(7, Types.INTEGER);
+            if (p.getSupplierId() == null) ps.setNull(7, Types.INTEGER);
             else ps.setInt(7, p.getSupplierId());
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
@@ -28,9 +29,6 @@ public class ProductDaoImpl implements ProductDao {
             c.commit();
             SimpleLogger.info("Product created: " + p);
             return p;
-        } catch (SQLException e) {
-            SimpleLogger.error("Create product failed: " + e.getMessage());
-            throw e;
         }
     }
 
@@ -42,9 +40,7 @@ public class ProductDaoImpl implements ProductDao {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             Product p = null;
-            if (rs.next()) {
-                p = map(rs);
-            }
+            if (rs.next()) p = map(rs);
             c.commit();
             return Optional.ofNullable(p);
         }
@@ -88,7 +84,7 @@ public class ProductDaoImpl implements ProductDao {
             ps.setDouble(4, p.getPrice());
             ps.setInt(5, p.getQuantity());
             ps.setInt(6, p.getMinStock());
-            if (p.getSupplierId()==null) ps.setNull(7, Types.INTEGER);
+            if (p.getSupplierId() == null) ps.setNull(7, Types.INTEGER);
             else ps.setInt(7, p.getSupplierId());
             ps.setInt(8, p.getProductId());
             ps.executeUpdate();
@@ -108,35 +104,61 @@ public class ProductDaoImpl implements ProductDao {
         }
     }
 
+    // ===================== FIXED: ATOMIC TRANSACTION =====================
     @Override
     public void changeQuantity(int productId, int delta, String txType, String note) throws SQLException {
-        try (Connection c = DbManager.getConnection()) {
-            int current;
-            try (PreparedStatement ps = c.prepareStatement("SELECT quantity FROM product WHERE product_id=?")) {
+        Connection c = null;
+        try {
+            c = DbManager.getConnection();
+            c.setAutoCommit(false); // START ATOMIC TRANSACTION
+
+            int currentQty;
+
+            // 1. Read current quantity
+            try (PreparedStatement ps =
+                         c.prepareStatement("SELECT quantity FROM product WHERE product_id=?")) {
                 ps.setInt(1, productId);
                 ResultSet rs = ps.executeQuery();
                 if (!rs.next()) throw new SQLException("Product not found");
-                current = rs.getInt("quantity");
+                currentQty = rs.getInt("quantity");
             }
-            int updated = current + delta;
-            if (updated < 0) throw new SQLException("Insufficient stock");
-            try (PreparedStatement upd = c.prepareStatement("UPDATE product SET quantity=? WHERE product_id=?")) {
-                upd.setInt(1, updated);
+
+            int updatedQty = currentQty + delta;
+            if (updatedQty < 0) throw new SQLException("Insufficient stock");
+
+            // 2. Update product quantity
+            try (PreparedStatement upd =
+                         c.prepareStatement("UPDATE product SET quantity=? WHERE product_id=?")) {
+                upd.setInt(1, updatedQty);
                 upd.setInt(2, productId);
                 upd.executeUpdate();
             }
-            try (PreparedStatement tx = c.prepareStatement(
-                    "INSERT INTO inventory_transaction (product_id, change, tx_type, note) VALUES (?,?,?,?)")) {
+
+            // 3. Insert inventory transaction record
+            try (PreparedStatement tx =
+                         c.prepareStatement(
+                                 "INSERT INTO inventory_transaction (product_id, change, tx_type, note) VALUES (?,?,?,?)")) {
                 tx.setInt(1, productId);
                 tx.setInt(2, delta);
                 tx.setString(3, txType);
                 tx.setString(4, note);
                 tx.executeUpdate();
             }
-            c.commit();
-            SimpleLogger.info("Quantity changed for product " + productId + " delta=" + delta);
+
+            c.commit(); // COMMIT BOTH OPERATIONS TOGETHER
+            SimpleLogger.info("Atomic quantity change for product " + productId + " delta=" + delta);
+
+        } catch (SQLException e) {
+            if (c != null) c.rollback(); // ROLLBACK ON FAILURE
+            throw e;
+        } finally {
+            if (c != null) {
+                c.setAutoCommit(true);
+                c.close();
+            }
         }
     }
+    // ====================================================================
 
     private Product map(ResultSet rs) throws SQLException {
         Product p = new Product();
