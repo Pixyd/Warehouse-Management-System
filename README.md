@@ -1,23 +1,109 @@
-# Warehouse Management System (Java Swing + SQLite)
+# 📦 Warehouse Management System
 
-## What's included
-- Java Swing GUI application
-- SQLite via JDBC (sqlite-jdbc required)
-- DAO pattern, Service layer, PreparedStatements, Transactions
-- Background low-stock monitor (ScheduledExecutorService)
-- Product add/edit/delete, search, receive/dispatch stock
+## 📌 Project Description
+The Warehouse Management System is a Java desktop application designed to handle warehouse inventory using **Java Swing**, **SQLite**, and **JDBC**, following a clean **MVC architecture**.
 
-## How to open in IntelliJ
-1. Unzip the project.
-2. Open IntelliJ -> Open -> select the `warehouse-management` folder.
-3. Mark `src/main/resources` as Resources Root (right-click -> Mark Directory As -> Resources Root).
-4. Add SQLite JDBC to project libraries: download sqlite-jdbc jar from https://github.com/xerial/sqlite-jdbc/releases and add via File -> Project Structure -> Libraries.
-5. Run `app.Main` (right-click Main.java -> Run 'Main.main()').
+## 🎯 Objectives
+- Digitize warehouse activity  
+- Reduce human errors  
+- Enable faster stock updates  
+- Provide better UI for inventory management  
 
-## Build with Gradle (optional)
-A sample `build.gradle` is included. You can import the project as a Gradle project or add the SQLite dependency to your build.
+## 🏗 System Architecture
 
-## Notes
-- On first run the app initializes `warehouse.db` using `src/main/resources/sql/schema.sql`.
-- If you package as a jar, ensure `schema.sql` is included in resources.
+### 🔹 UI Layer (Swing)
+Handles user interaction:
+- Product table  
+- Add/Edit dialog  
+- Stock receive/dispatch  
+- Search bar  
 
+### 🔹 Service Layer (`WarehouseService`)
+- Business logic  
+- Cache using ConcurrentHashMap  
+- Coordinates UI + DAO  
+
+### 🔹 DAO Layer (`ProductDaoImpl`)
+- JDBC operations  
+- CRUD handling  
+- SQLite communication  
+
+### 🔹 Database Schema
+```sql
+CREATE TABLE product (
+    product_id INTEGER PRIMARY KEY,
+    sku TEXT,
+    name TEXT,
+    description TEXT,
+    price REAL,
+    quantity INTEGER,
+    min_stock INTEGER
+);
+```
+
+---
+
+## ✨ Features
+### ✔ Product Management
+- Add / Edit / Delete products  
+- Auto-increment visible index  
+- Hidden DB ID for safe deletion  
+
+### ✔ Inventory Ops
+- Receive stock  
+- Dispatch stock  
+- Quantity validation  
+- Low-stock detection  
+
+### ✔ Search System
+- Search by Name  
+- Search by SKU  
+- Case-insensitive  
+
+### ✔ UI Features
+- JTable for clean data display  
+- Background tasks via SwingWorker  
+- Tooltip showing DB ID  
+
+---
+
+## 📂 Project Structure
+```
+src/
+ ├── app/
+ │     ├── Main.java
+ │     └── UI/
+ │           ├── MainFrame.java
+ │           ├── ProductPanel.java
+ │           └── ProductFormDialog.java
+ ├── model/
+ │     └── Product.java
+ ├── service/
+ │     └── WarehouseService.java
+ ├── dao/
+ │     ├── ProductDao.java
+ │     └── ProductDaoImpl.java
+ └── util/
+       └── SimpleLogger.java
+```
+
+---
+
+## ▶️ How to Run the Project
+1. Install **Java 17+**  
+2. Open project in **IntelliJ IDEA**  
+3. Run `Main.java`  
+4. Database auto-creates  
+
+---
+
+## 👥 Team Semicolon
+- **Dhruv Mittal (Leader)**  
+- **Kriti Biswas**  
+- **Ayush Kumar Rai**
+
+## 🔮 Future Enhancements
+- Login system  
+- Export to PDF/Excel  
+- Supplier module  
+- Cloud integration  
